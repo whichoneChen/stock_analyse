@@ -22,7 +22,7 @@ public interface SearchMapper extends BaseMapper<Stock> {
      * @param code 股票代码
      * @return 股票
      */
-    @Select("select * from basicinfo where code = #{code}")
+    @Select("select * from hs300 where code = #{code}")
     @ResultType(Stock.class)
     Stock selectByCode(String code);
 
