@@ -6,6 +6,7 @@ import org.apache.ibatis.annotations.Result;
 import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.type.JdbcType;
+import se.stock.po.DailyK;
 import se.stock.po.QuarterReportPO;
 import se.stock.po.Stock;
 
@@ -40,7 +41,7 @@ public interface StockMapper extends BaseMapper<QuarterReportPO> {
             @Result(column = "sid", property = "sid", javaType = Integer.class, jdbcType = JdbcType.VARCHAR),
             @Result(column = "codeId", property = "codeId", javaType = String.class, jdbcType = JdbcType.VARCHAR),
             @Result(column = "pubDate", property = "pubDate", javaType = LocalDateTime.class, jdbcType = JdbcType.DATE),
-            @Result(column = "statDate", property = "statDate",javaType = LocalDateTime.class,  jdbcType = JdbcType.DATE),
+            @Result(column = "statDate", property = "statDate", javaType = LocalDateTime.class, jdbcType = JdbcType.DATE),
             @Result(column = "YOYNI", property = "YOYNI", javaType = Double.class, jdbcType = JdbcType.VARCHAR),
             @Result(column = "YOYEPSBasic", property = "YOYEPSBasic", javaType = Double.class, jdbcType = JdbcType.VARCHAR),
             @Result(column = "epsTTM", property = "epsTTM", javaType = Double.class, jdbcType = JdbcType.VARCHAR),
@@ -57,4 +58,21 @@ public interface StockMapper extends BaseMapper<QuarterReportPO> {
      */
     @Select("select count(*) from hs300 where sid=#{sid}")
     Integer selectHS300BySid(Integer sid);
+
+    /**
+     * 查找日K数据
+     *
+     * @param sid 股票id
+     * @return 日K列表
+     */
+    @Select("select date, close, volume from daily_k " +
+            "   where sid=#{sid} and STR_TO_DATE(date, '%Y-%m-%d') >= DATE('2020-01-01')" +
+            "   order by STR_TO_DATE(date, '%Y-%m-%d')")
+    @Results(id = "DailyK", value = {
+            @Result(column = "date", property = "date", javaType = String.class, jdbcType = JdbcType.VARCHAR),
+            @Result(column = "close", property = "close", javaType = String.class, jdbcType = JdbcType.VARCHAR),
+            @Result(column = "volume", property = "volume", javaType = String.class, jdbcType = JdbcType.VARCHAR)
+    })
+    LinkedList<DailyK> selectDailyK(Integer sid);
+
 }

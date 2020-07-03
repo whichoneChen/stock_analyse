@@ -5,6 +5,7 @@ import se.stock.form.PredictForm;
 import se.stock.mapper.ManagerMapper;
 import se.stock.mapper.SearchMapper;
 import se.stock.mapper.StockMapper;
+import se.stock.po.DailyK;
 import se.stock.po.Manager;
 import se.stock.po.QuarterReportPO;
 import se.stock.po.Stock;
@@ -96,6 +97,19 @@ public class StockServiceImpl implements StockService {
         pr.setAnalysis(analysis);
 
         return pr;
+    }
+
+    @Override
+    public LinkedList<LinkedList<String>> getTransaction(Integer sid) {
+        //[["2020-01-01","3561","12313444"]] //日期，闭盘，成交量
+        LinkedList<DailyK> dailyKs = stockMapper.selectDailyK(sid);
+        LinkedList<LinkedList<String>> result = new LinkedList<>();
+        dailyKs.forEach(o -> result.add(new LinkedList<String>() {{
+            add(o.getDate());
+            add(o.getClose());
+            add(o.getVolume());
+        }}));
+        return result;
     }
 
     /**

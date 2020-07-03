@@ -32,4 +32,12 @@ public class StockController {
     public Response predict(@RequestBody @Valid PredictForm form) {
         return Response.buildSuccess(stockService.predict(form));
     }
+
+    @GetMapping("/transaction")
+    public Response transaction(@RequestParam("sid")
+                                @Min(value = 1, message = INVALID_PARAM)
+                                        Integer sid) {
+        return Response.buildSuccess(stockService.getTransaction(sid));
+    }
+
 }
