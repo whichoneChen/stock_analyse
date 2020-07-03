@@ -1,16 +1,22 @@
 package se.stock.serviceImpl;
 
-import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import se.stock.mapper.SearchMapper;
+import se.stock.po.Growth;
 import se.stock.po.Stock;
 import se.stock.service.HomeService;
+import se.stock.vo.RankList;
+import se.stock.vo.RankStockVO;
+import se.stock.vo.SidResult;
 
 import javax.annotation.Resource;
+import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
- * @author jh
+ * @author cyl
  * @date 2020/7/2
  */
 @Service("HomeService")
@@ -21,10 +27,37 @@ public class HomeServiceImpl /*extends ServiceImpl<SearchMapper, Stock>*/ implem
     @Resource
     SearchMapper searchMapper;
 
+
     @Override
-    public Stock get(String code) {
-        return searchMapper.selectByCode(code);
+    public RankList getRankList() {
+        List<Growth> growthinfo = searchMapper.selectTopTen();
+        List<RankStockVO> result = new ArrayList<>();
+        DecimalFormat df = new DecimalFormat("0.00%");
+
+        for(Growth growth : growthinfo){
+            RankStockVO rankStockVO = new RankStockVO();
+            rankStockVO.setSid(growth.getSid());
+            rankStockVO.setYoy(df.format(growth.getYOYNI()*0.01));
+            Stock stock = searchMapper.selctBySid(growth.getSid());
+            rankStockVO.setCode(stock.getCode());
+            rankStockVO.setIndustry(stock.getIndustry());
+            rankStockVO.setName(stock.getName());
+            result.add(rankStockVO);
+        }
+        RankList rankList = new RankList();
+        rankList.setStockList(result);
+        return rankList;
     }
 
-
+    @Override
+    public SidResult SearchStockSid(String code) {
+        Stock stock = searchMapper.selectByCode(code);
+        Integer result = -1;
+        if(stock != null){
+            result = stock.getSid();
+        }
+        SidResult res = new SidResult();
+        res.setSid(result);
+        return res;
+    }
 }

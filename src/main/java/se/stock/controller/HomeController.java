@@ -5,11 +5,12 @@ import org.springframework.web.bind.annotation.*;
 import se.stock.po.Stock;
 import se.stock.service.HomeService;
 import se.stock.vo.Response;
+import se.stock.vo.SidResult;
 
 import javax.annotation.Resource;
 
 /**
- * @author jh
+ * @author cyl
  * @date 2020/7/2
  */
 @RestController
@@ -29,19 +30,27 @@ public class HomeController {
 
 
     /**
-     * 论文高级检索
+     * 搜索框，根据股票代码查找sid
      *
      * @param code 股票代码
-     * @return 股票数据
+     * @return sid
      */
     @GetMapping("/search")
     public Response searchStock(@RequestParam String code) {
         if (code == null || "".equals(code)) {
             return Response.buildFailure(PARAM_ERROR);
         }
-        Stock s = homeService.get(code);
-        return Response.buildSuccess(s);
+        SidResult res = homeService.SearchStockSid(code);
+        return Response.buildSuccess(res);
+    }
 
+    /**
+     * 获取涨幅最高的10只股票
+     * @return
+     */
+    @GetMapping("/rankList")
+    public Response getTopTenStock(){
 
+        return Response.buildSuccess(homeService.getRankList());
     }
 }
