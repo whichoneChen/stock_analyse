@@ -7,6 +7,7 @@ import org.apache.ibatis.annotations.Results;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.type.JdbcType;
 import se.stock.po.QuarterReportPO;
+import se.stock.po.Stock;
 
 import java.time.LocalDateTime;
 import java.util.Date;
@@ -47,4 +48,13 @@ public interface StockMapper extends BaseMapper<QuarterReportPO> {
             @Result(column = "netProfit", property = "netProfit", javaType = Double.class, jdbcType = JdbcType.VARCHAR)
     })
     LinkedList<QuarterReportPO> selectQuarters(Integer sid, Integer limit);
+
+    /**
+     * 查找是否是沪深300股，不是的话返回 0
+     *
+     * @param sid 股票id
+     * @return 数量
+     */
+    @Select("select count(*) from hs300 where sid=#{sid}")
+    Integer selectHS300BySid(Integer sid);
 }

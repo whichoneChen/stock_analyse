@@ -86,12 +86,12 @@ public class QuarterReportPO {
     public QuarterReportVO toVO() {
         QuarterReportVO vo = new QuarterReportVO();
         vo.setDate(DateUtil.toStringDate(this.statDate));
-        vo.setEpsTTM(epsTTM.toString());
-        vo.setLRRNI(LRRNI.toString());
-        vo.setNetProfit(netProfit.toString());
-        vo.setTotalShare(totalShare.toString());
-        vo.setYOYEPSBasic(YOYEPSBasic.toString());
-        vo.setYOYNI(YOYNI.toString());
+        vo.setEpsTTM(String.format("%.2f", epsTTM));
+        vo.setLRRNI(String.format("%.2f", LRRNI * 100) + "%");
+        vo.setNetProfit(String.format("%.2f", netProfit));
+        vo.setTotalShare(String.format("%.2f", totalShare));
+        vo.setYOYEPSBasic(String.format("%.2f", YOYEPSBasic * 100) + "%");
+        vo.setYOYNI(String.format("%.2f", YOYNI * 100) + "%");
         return vo;
     }
 
