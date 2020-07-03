@@ -26,8 +26,11 @@ public interface IndustryMapper {
      * @param industry 板块名称
      * @return
      */
-    @Select("SELECT basicinfo.*, MAX(amount) from basicinfo, daily_k WHERE date=\"2020-06-22\" AND industry=#{industry} " +
-            "AND basicinfo.sid=daily_k.sid")
+    @Select("SELECT basicinfo.* FROM basicinfo, \n" +
+            "(SELECT sid,amount FROM (\n" +
+            "SELECT hs300.sid, amount FROM daily_k, hs300 WHERE date=\"2020-06-22\" and daily_k.sid=hs300.sid and industry=#{industry}) x\n" +
+            "ORDER BY amount desc LIMIT 1) y\n" +
+            "WHERE basicinfo.sid = y.sid")
     @ResultType(Stock.class)
     Stock selectDominateStock(String industry);
 
