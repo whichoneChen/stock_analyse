@@ -83,6 +83,8 @@ public class StockServiceImpl implements StockService {
         report.setEpsTTM(form.getEps());
         report.setNetProfit(form.getNetProfit());
         report.setTotalShare(form.getTotalShare());
+        report.setYOYEPSBasic((form.getEps() - reportPos.getFirst().getEpsTTM()) / reportPos.getFirst().getEpsTTM());
+        report.setYOYNI((form.getEps() - reportPos.getLast().getEpsTTM()) / reportPos.getLast().getEpsTTM());
 
         // 将传入的数据作为最新季报来分析
         QuarterReportPO lastQ = reportPos.getFirst();
@@ -128,12 +130,12 @@ public class StockServiceImpl implements StockService {
         QuarterReportPO newest = reports.get(0);
         QuarterReportPO second = reports.get(1);
         QuarterReportPO fifth = reports.get(4);
-        Double eps_huan_bi = (newest.getEpsTTM() - second.getEpsTTM()) / second.getEpsTTM();
-        Double eps_tong_bi = newest.getYOYEPSBasic();
-        Double gu_ben_huan_bi = (newest.getTotalShare() - second.getTotalShare()) / second.getTotalShare();
-        Double gu_ben_tong_bi = (newest.getTotalShare() - fifth.getTotalShare()) / fifth.getTotalShare();
-        Double jin_li_run_huan_bi = newest.getLRRNI();
-        Double jin_li_run_tong_bi = newest.getYOYNI();
+        double eps_huan_bi = (newest.getEpsTTM() - second.getEpsTTM()) / second.getEpsTTM();
+        double eps_tong_bi = newest.getYOYEPSBasic();
+        double gu_ben_huan_bi = (newest.getTotalShare() - second.getTotalShare()) / second.getTotalShare();
+        double gu_ben_tong_bi = (newest.getTotalShare() - fifth.getTotalShare()) / fifth.getTotalShare();
+        double jin_li_run_huan_bi = newest.getLRRNI();
+        double jin_li_run_tong_bi = newest.getYOYNI();
 
         //1、eps呈上升。股本环比增长>（远大于，高于10个百分点）净利润环比增长，不推荐
         //即eps最近这个季度的环比上升，但是股本环比远大于净利润环比
