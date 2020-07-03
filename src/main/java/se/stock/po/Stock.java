@@ -44,7 +44,7 @@ public class Stock {
     @TableField("issue_date")
     private String issueDate;
 
-    @TableField("issue_say")
+    @TableField("issue_way")
     private String issueWay;
 
     @TableField("issue_price_per_share")
