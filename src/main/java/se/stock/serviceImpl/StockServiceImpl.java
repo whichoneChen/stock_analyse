@@ -37,21 +37,26 @@ public class StockServiceImpl implements StockService {
     public StockInfo getStock(Integer sid) {
         StockInfo si = new StockInfo();
 
+        // 查找股票名、股票代码
         Stock s = searchMapper.selectById(sid);
         si.setCode(s.getCode());
         si.setName(s.getName());
 
+        // 查找股东
         LinkedList<Manager> stockholders = managerMapper.selectBySid(sid);
         LinkedList<String> holdersString = new LinkedList<>();
         stockholders.forEach(o -> holdersString.add(o.getName() + "(" + o.getPosition() + ")"));
         si.setStockHolders(holdersString);
 
+        // 查找季报
         LinkedList<QuarterReportPO> reportPos = getReports(sid, 5);
 
+        // 生成季报VO
         LinkedList<QuarterReportVO> reportVos = new LinkedList<>();
         reportPos.forEach(o -> reportVos.add(o.toVO()));
         si.setReports(reportVos);
 
+        // 生成分析结果
         String analysis = analyze(reportPos);
         si.setAnalysis(analysis);
 
@@ -62,25 +67,42 @@ public class StockServiceImpl implements StockService {
     public PredictResult predict(PredictForm form) {
         PredictResult pr = new PredictResult();
 
+        // 判断是不是沪深300股，如果不是则返回-1
         Stock s = searchMapper.selectByCode(form.getCode());
+        Integer is = stockMapper.selectHS300BySid(s.getSid());
+        if (is == 0) {
+            pr.setSid(-1);
+            return pr;
+        }
         pr.setSid(s.getSid());
 
+        // 查找以往季报
         LinkedList<QuarterReportPO> reportPos = getReports(s.getSid(), 4);
         QuarterReportPO report = new QuarterReportPO();
         report.setStatDate(DateUtil.parse(form.getStatDate()));
         report.setEpsTTM(form.getEps());
         report.setNetProfit(form.getNetProfit());
         report.setTotalShare(form.getTotalShare());
+
+        // 将传入的数据作为最新季报来分析
         QuarterReportPO lastQ = reportPos.getFirst();
         report.setLRRNI((report.getNetProfit() - lastQ.getNetProfit()) / lastQ.getNetProfit());
         reportPos.addFirst(report);
 
+        // 生成分析结果
         String analysis = analyze(reportPos);
         pr.setAnalysis(analysis);
 
         return pr;
     }
 
+    /**
+     * 获取季报
+     *
+     * @param sid 股票id
+     * @param limit 季报数量
+     * @return 季报
+     */
     private LinkedList<QuarterReportPO> getReports(Integer sid, Integer limit) {
         LinkedList<QuarterReportPO> reportPos = stockMapper.selectQuarters(sid, limit + 1);
         for (int i = 0; i < reportPos.size() - 1; i++) {
