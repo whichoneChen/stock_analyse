@@ -16,6 +16,9 @@ import se.stock.vo.QuarterReportVO;
 import se.stock.vo.StockInfo;
 
 import javax.annotation.Resource;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.Month;
 import java.util.LinkedList;
 
 /**
@@ -131,17 +134,38 @@ public class StockServiceImpl implements StockService {
     }
 
     private String analyze(LinkedList<QuarterReportPO> reports) {
-        String r1 = "eps呈上升。股本环比增长>（远大于，高于10个百分点）净利润环比增长，不推荐";
-        String r2 = "eps同比、环比下降巨大，不推荐";
-        String r3 = "单季成长，同比增长，强烈推荐";
-        String r4 = "股本大幅度增长、净利润增长、EPS下降，不推荐（理由：摊薄）";
-        String r5 = "上一季度剧增，这一季度亏损（EPS下降）不能买";
-        String r6 = "仅分析去年eps，第四季度>第三季>第二季>第一季，可以买";
+        String r1_p1 = "eps呈上升。股本环比增长";
+        String r1_p2 = "远大于净利润环比增长";
+        String r1_p3 = ",不推荐";
+
+        String r2_p1 = "eps同比下降";
+        String r2_p2 = "eps环比下降";
+        String r2_p3 = ",不推荐";
+
+        String r3_p1 = "单季eps成长";
+        String r3_p2 = "，同比增长";
+        String r3_p3 = "，强烈推荐";
+
+        String r4_p1 = "股本大幅度增长";
+        String r4_p2 = "、净利润增长";
+        String r4_p3 = "、EPS下降";
+        String r4_p4 = "，不推荐（理由：摊薄）";
+
+        String r5_p1 = "上一季度剧增";
+        String r5_p2 = "，这一季度EPS下降";
+        String r5_p3 = ",不能买";
+
+        String r6 = "去年eps中，四季度eps持续增长，可以买";
         String r7 = "eps同比增长超过30%或环比增长超过30%推荐";
 
         String defaultR = "没有符合涨势的特征，不推荐";
 
         QuarterReportPO newest = reports.get(0);
+        LocalDateTime new_publish_date = newest.getStatDate();
+        boolean is_first_season = false;
+        if(new_publish_date.getMonth().equals(Month.MARCH)){
+            is_first_season=true;
+        }
         QuarterReportPO second = reports.get(1);
         QuarterReportPO fifth = reports.get(4);
         double eps_huan_bi = (newest.getEpsTTM() - second.getEpsTTM()) / second.getEpsTTM();
@@ -153,35 +177,40 @@ public class StockServiceImpl implements StockService {
 
         //1、eps呈上升。股本环比增长>（远大于，高于10个百分点）净利润环比增长，不推荐
         //即eps最近这个季度的环比上升，但是股本环比远大于净利润环比
-        if (eps_huan_bi > 0 && gu_ben_huan_bi - jin_li_run_huan_bi > 0.1) {
-            return r1;
+        if ((!is_first_season)&&eps_huan_bi > 0 && gu_ben_huan_bi - jin_li_run_huan_bi > 0.1) {
+            return r1_p1+gu_ben_huan_bi+r1_p2+jin_li_run_huan_bi+r1_p3;
+        }
+
+        if ((is_first_season)&&eps_tong_bi > 0 && gu_ben_tong_bi - gu_ben_tong_bi > 0.1) {
+            return "eps呈上升。股本同比增长"+gu_ben_tong_bi+"远大于净利润同比增长"+gu_ben_tong_bi+",不推荐";
         }
 
         //2、eps同比、环比下降巨大，不推荐
         //最近季度的eps同比、环比都下降30%
-        if (eps_huan_bi <= -0.3 && eps_tong_bi <= -0.3) {
-            return r2;
+        if (eps_tong_bi <= -0.3) {
+            return r2_p1+eps_tong_bi+r2_p3;
+        }else if(eps_huan_bi <= -0.3){
+            return r2_p2+eps_huan_bi+r2_p3;
         }
 
         //3、单季成长，同比增长，强烈推荐
         //单季指只考虑最新的eps环比增长、同比也增长
         if (eps_huan_bi > 0 && eps_tong_bi > 0) {
-            return r3;
+            return r3_p1+eps_huan_bi+r3_p2+eps_tong_bi+r3_p3;
         }
 
         //4、股本大幅度增长、净利润增长、EPS下降，不推荐（理由：摊薄）
         //最近这个季度的股本环比增长都大于40%，净利润环比增长是正，eps环比是负
-        if (gu_ben_huan_bi > 0.4 && gu_ben_tong_bi > 0.4 && jin_li_run_huan_bi > 0 && eps_huan_bi < 0) {
-            return r4;
+        if ((!is_first_season)&&gu_ben_huan_bi > 0.4  && jin_li_run_huan_bi > 0 && eps_huan_bi < 0) {
+            return r4_p1+gu_ben_huan_bi+r4_p2+jin_li_run_huan_bi+r4_p3+eps_huan_bi+r4_p4;
         }
-
         //5、上一季度剧增，这一季度亏损（EPS下降）不能买
         //这一季度是指最新的季报eps环比是负，上一季度(第二新的季报)的eps环比增长30%
         if (eps_huan_bi < 0) {
             QuarterReportPO third = reports.get(2);
             double second_eps_huan_bi = (second.getEpsTTM() - third.getEpsTTM()) / third.getEpsTTM();
             if (second_eps_huan_bi > 0.3) {
-                return r5;
+                return r5_p1+second_eps_huan_bi+r5_p2+eps_huan_bi+r5_p3;
             }
         }
 
@@ -201,6 +230,10 @@ public class StockServiceImpl implements StockService {
         //7、eps同比增长超过30%或环比增长超过30%推荐
         if (eps_huan_bi > 0.3 || eps_tong_bi > 0.3) {
             return r7;
+        }
+
+        if(is_first_season&&eps_tong_bi>0){
+            return "首季，且eps同比增长"+eps_tong_bi+"可以考虑购买";
         }
 
         return defaultR;
